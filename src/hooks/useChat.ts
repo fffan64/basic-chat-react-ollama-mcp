@@ -1,8 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { ChatMessage, ChatState, OllamaMessage } from "../types";
 import { OllamaService } from "../services/OllamaService";
 import { MCPService } from "../services/MCPService";
 import { PromptLoader } from "../services/PromptLoader";
+import { TokenService } from "../services/TokenService";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const ollamaService = new OllamaService("http://localhost:11434");
 const mcpService = new MCPService("http://localhost:5000");
@@ -14,10 +16,29 @@ mcpService.initialize().catch((err) => {
 });
 
 export const useChat = () => {
+  const { getAccessTokenSilently } = useAuth0();
   const [state, setState] = useState<ChatState>({
     messages: [],
     isLoading: false,
   });
+
+  // Initialize JWT token from Auth0
+  useEffect(() => {
+    const initializeToken = async () => {
+      try {
+        const token = await getAccessTokenSilently({
+          authorizationParams: { audience: "https://my-app.com" },
+        });
+        TokenService.setToken(token);
+        console.log("✓ JWT token initialized from Auth0");
+      } catch (err) {
+        console.warn("Failed to get access token:", err);
+        TokenService.setToken(null);
+      }
+    };
+
+    initializeToken();
+  }, [getAccessTokenSilently]);
 
   const generateId = useCallback(() => {
     return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

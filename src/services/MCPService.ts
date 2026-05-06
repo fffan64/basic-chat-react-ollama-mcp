@@ -5,6 +5,7 @@ import type {
   MCPResource,
   MCPToolResult,
 } from "../types";
+import { TokenService } from "./TokenService";
 
 /**
  * MCPService - Handles communication with MCP (Model Context Protocol) servers
@@ -93,12 +94,21 @@ export class MCPService {
       console.log("🔄 Sending initialize request...");
 
       // Use raw fetch to capture response headers
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        Accept: "application/json, text/event-stream",
+      };
+
+      // Add JWT token if available
+      const authHeader = TokenService.getAuthHeader();
+      if (authHeader) {
+        headers["Authorization"] = authHeader;
+        console.log("✓ Authorization header added");
+      }
+
       const response = await fetch(this.baseUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json, text/event-stream",
-        },
+        headers,
         body: JSON.stringify(request),
       });
 
@@ -408,6 +418,7 @@ export class MCPService {
    * Send a JSON-RPC 2.0 request to the MCP server
    * All communication goes through this method
    * Includes session ID header if available
+   * Includes JWT token in Authorization header if available
    * Parses Server-Sent Events (SSE) format responses
    */
   private async sendRequest(request: MCPRequest): Promise<MCPResponse> {
@@ -425,6 +436,12 @@ export class MCPService {
         );
       } else {
         console.log(`[MCP Request] ${request.method} (no session ID)`);
+      }
+
+      // Add JWT token if available
+      const authHeader = TokenService.getAuthHeader();
+      if (authHeader) {
+        headers["Authorization"] = authHeader;
       }
 
       const response = await fetch(this.baseUrl, {
