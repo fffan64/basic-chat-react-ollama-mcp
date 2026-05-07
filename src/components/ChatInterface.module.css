@@ -10,18 +10,76 @@
   border-bottom: 1px solid #e0e0e0;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
 }
 
 .header h1 {
-  margin: 0 0 4px 0;
+  margin: 0;
   font-size: 24px;
   font-weight: 600;
 }
 
-.header p {
-  margin: 0;
-  font-size: 12px;
-  opacity: 0.9;
+.modelSelector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.modelSelector label {
+  font-weight: 500;
+  opacity: 0.95;
+  white-space: nowrap;
+}
+
+.selectBox {
+  flex: 1;
+  max-width: 300px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.selectBox:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.selectBox:focus {
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.selectBox:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.selectBox option {
+  background-color: #333;
+  color: white;
+  padding: 8px;
+}
+
+.loadingText {
+  font-size: 13px;
+  opacity: 0.8;
+  font-style: italic;
 }
 
 .errorBanner {
@@ -72,10 +130,23 @@
 @media (max-width: 640px) {
   .header {
     padding: 16px;
+    gap: 10px;
   }
 
   .header h1 {
     font-size: 20px;
+  }
+
+  .modelSelector {
+    flex-wrap: wrap;
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .selectBox {
+    max-width: 100%;
+    flex: 1;
+    min-width: 150px;
   }
 
   .errorBanner {

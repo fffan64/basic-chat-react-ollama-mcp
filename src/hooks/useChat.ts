@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { ChatMessage, ChatState, OllamaMessage } from "../types";
 import { OllamaService } from "../services/OllamaService";
 import { MCPService } from "../services/MCPService";
@@ -15,12 +15,37 @@ mcpService.initialize().catch((err) => {
   console.warn("MCP initialization failed, running without context:", err);
 });
 
+// localStorage helpers for model preference
+const STORAGE_KEY = "selectedOllamaModel";
+
+const saveModelPreference = (model: string) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, model);
+  } catch (err) {
+    console.warn("Failed to save model preference:", err);
+  }
+};
+
+const loadModelPreference = (): string | null => {
+  try {
+    return localStorage.getItem(STORAGE_KEY);
+  } catch (err) {
+    console.warn("Failed to load model preference:", err);
+    return null;
+  }
+};
+
 export const useChat = () => {
   const { getAccessTokenSilently } = useAuth0();
   const [state, setState] = useState<ChatState>({
     messages: [],
     isLoading: false,
   });
+
+  // Model selection state
+  const [selectedModel, setSelectedModelState] = useState<string>("");
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [modelsLoading, setModelsLoading] = useState(true);
 
   // Initialize JWT token from Auth0
   useEffect(() => {
@@ -40,8 +65,48 @@ export const useChat = () => {
     initializeToken();
   }, [getAccessTokenSilently]);
 
+  // Fetch available models from Ollama
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        setModelsLoading(true);
+        const models = await ollamaService.listModels();
+        const modelNames = models.map((m: { name: string }) => m.name);
+        setAvailableModels(modelNames);
+
+        // Try to restore saved model preference
+        const savedModel = loadModelPreference();
+        if (savedModel && modelNames.includes(savedModel)) {
+          setSelectedModelState(savedModel);
+        } else if (modelNames.length > 0) {
+          // Use first available model as default
+          setSelectedModelState(modelNames[0]);
+          saveModelPreference(modelNames[0]);
+        } else {
+          // Fallback if no models available
+          setSelectedModelState("qwen3.5:latest");
+        }
+        console.log("✓ Models fetched:", modelNames);
+      } catch (err) {
+        console.warn("Failed to fetch models from Ollama:", err);
+        // Fallback to hardcoded model
+        setAvailableModels(["qwen3.5:latest"]);
+        setSelectedModelState("qwen3.5:latest");
+      } finally {
+        setModelsLoading(false);
+      }
+    };
+
+    fetchModels();
+  }, []);
+
   const generateId = useCallback(() => {
     return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }, []);
+
+  const setSelectedModel = useCallback((model: string) => {
+    setSelectedModelState(model);
+    saveModelPreference(model);
   }, []);
 
   /**
@@ -77,7 +142,7 @@ export const useChat = () => {
         let fullResponse = "";
         console.log("🤖 Waiting for LLM response...");
         for await (const chunk of ollamaService.streamChat(
-          "qwen3.5:latest",
+          selectedModel,
           messages,
         )) {
           fullResponse += chunk;
@@ -134,7 +199,7 @@ export const useChat = () => {
       );
       return "I've used several tools to help with your request.";
     },
-    [],
+    [selectedModel],
   );
 
   const sendMessage = useCallback(
@@ -253,5 +318,9 @@ export const useChat = () => {
     isLoading: state.isLoading,
     error: state.error,
     sendMessage,
+    selectedModel,
+    availableModels,
+    modelsLoading,
+    setSelectedModel,
   };
 };

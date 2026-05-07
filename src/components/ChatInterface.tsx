@@ -5,7 +5,16 @@ import { InputBox } from "./InputBox";
 import styles from "./ChatInterface.module.css";
 
 export const ChatInterface: React.FC = () => {
-  const { messages, isLoading, error, sendMessage } = useChat();
+  const {
+    messages,
+    isLoading,
+    error,
+    sendMessage,
+    selectedModel,
+    availableModels,
+    modelsLoading,
+    setSelectedModel,
+  } = useChat();
   const [localError, setLocalError] = useState<string | null>(null);
 
   const handleSubmit = useCallback(
@@ -25,8 +34,29 @@ export const ChatInterface: React.FC = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1>Chat with Ollama (MCP Powered)</h1>
-        <p>Model: qwen3.5:latest</p>
+        <div className={styles.headerTop}>
+          <h1>Chat with Ollama (MCP Powered)</h1>
+        </div>
+        <div className={styles.modelSelector}>
+          <label htmlFor="model-select">Model:</label>
+          {modelsLoading ? (
+            <span className={styles.loadingText}>Loading models...</span>
+          ) : (
+            <select
+              id="model-select"
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              disabled={isLoading}
+              className={styles.selectBox}
+            >
+              {availableModels.map((model) => (
+                <option key={model} value={model}>
+                  {model}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
       </div>
 
       {(error || localError) && (
