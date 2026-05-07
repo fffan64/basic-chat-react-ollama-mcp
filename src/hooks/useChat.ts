@@ -313,6 +313,14 @@ export const useChat = () => {
     [state.messages, generateId, executionLoop],
   );
 
+  const clearHistory = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      messages: [],
+      error: undefined,
+    }));
+  }, []);
+
   return {
     messages: state.messages,
     isLoading: state.isLoading,
@@ -322,5 +330,6 @@ export const useChat = () => {
     availableModels,
     modelsLoading,
     setSelectedModel,
+    clearHistory,
   };
 };

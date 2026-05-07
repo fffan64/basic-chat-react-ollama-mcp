@@ -14,8 +14,20 @@ export const ChatInterface: React.FC = () => {
     availableModels,
     modelsLoading,
     setSelectedModel,
+    clearHistory,
   } = useChat();
   const [localError, setLocalError] = useState<string | null>(null);
+  const [showConfirmClear, setShowConfirmClear] = useState(false);
+
+  const handleClearHistory = useCallback(() => {
+    if (messages.length === 0) return;
+    setShowConfirmClear(true);
+  }, [messages.length]);
+
+  const confirmClearHistory = useCallback(() => {
+    clearHistory();
+    setShowConfirmClear(false);
+  }, [clearHistory]);
 
   const handleSubmit = useCallback(
     async (text: string) => {
@@ -56,7 +68,42 @@ export const ChatInterface: React.FC = () => {
               ))}
             </select>
           )}
+          <button
+            onClick={handleClearHistory}
+            disabled={messages.length === 0 || isLoading}
+            className={styles.clearButton}
+            title="Clear chat history and start fresh"
+          >
+            Clear History
+          </button>
         </div>
+
+        {showConfirmClear && (
+          <div className={styles.confirmDialog}>
+            <div className={styles.confirmOverlay}>
+              <div className={styles.confirmBox}>
+                <p>
+                  Are you sure? This will clear all chat messages. This cannot
+                  be undone.
+                </p>
+                <div className={styles.confirmButtons}>
+                  <button
+                    onClick={() => setShowConfirmClear(false)}
+                    className={styles.confirmCancel}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmClearHistory}
+                    className={styles.confirmClear}
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {(error || localError) && (
