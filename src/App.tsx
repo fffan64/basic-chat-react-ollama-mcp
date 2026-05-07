@@ -12,10 +12,10 @@ function App() {
     user, // User profile
   } = useAuth0();
 
-  const signup = () =>
+  const handleSignup = () =>
     login({ authorizationParams: { screen_hint: "signup" } });
 
-  const logout = () =>
+  const handleLogout = () =>
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
 
   if (isLoading) return "Loading...";
@@ -30,15 +30,15 @@ function App() {
 
       <ChatInterface />
 
-      <button onClick={logout}>Logout</button>
+      <button onClick={handleLogout}>Logout</button>
     </>
   ) : (
     <>
       {error && <p>Error: {error.message}</p>}
 
-      <button onClick={signup}>Signup</button>
+      <button onClick={handleSignup}>Signup</button>
 
-      <button onClick={login}>Login</button>
+      <button onClick={() => login()}>Login</button>
     </>
   );
   // return ;

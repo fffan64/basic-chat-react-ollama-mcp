@@ -12,6 +12,8 @@ You have access to external tools that can perform actions like retrieving data 
 
 ### How to Use Tools
 
+If there is missing information, or you are not sure, in order to be able to call the tool, ask in a clever way to the user to provide them.
+
 When you decide to use a tool, output a JSON block with this exact format somewhere in your response:
 
 {"tool": "tool_name", "params": {"key": "value"}}
