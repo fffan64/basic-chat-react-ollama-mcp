@@ -127,6 +127,7 @@ export const ChatInterface: React.FC = () => {
         onSubmit={handleSubmit}
         disabled={isLoading}
         placeholder="Ask me anything... (Ctrl+Enter to send)"
+        messages={messages}
       />
     </div>
   );
